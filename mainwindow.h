@@ -3,11 +3,21 @@
 
 #include <QMainWindow>
 
+#include <QtCharts>//faltaba incluir este header
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QSplineSeries>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QCategoryAxis>
+
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 class QSerialPort;
+
+//class QTCharts;
 
 class MainWindow : public QMainWindow
 {
@@ -19,11 +29,23 @@ public:
 
     void usbport(void);
 
+    //////////////////////////
+    QChart *chart;
+    //QSplineSeries *series;
+    QLineSeries *series;
+
+    QValueAxis *axisY;
+    //////////////////////
+    void initChart(void);
+
 private slots:
     void readSerial();
 
+    void on_pushButton_clicked();
+
 private:
     Ui::MainWindow *ui;
+
 
     //
     QSerialPort *usbCDC;

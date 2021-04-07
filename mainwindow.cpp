@@ -1,3 +1,7 @@
+/*
+* FIRWAR E.I.R.L
+* Juan Carlos Agüero Flores
+*/
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -16,15 +20,15 @@ void MainWindow::usbport(void)
     qDebug()<< "number of available ports "<< QSerialPortInfo::availablePorts().length();
     foreach(const QSerialPortInfo &serialPortInfo, QSerialPortInfo::availablePorts())
     {
-        qDebug()<< "Has vendor ID" << serialPortInfo.hasVendorIdentifier();
+        //qDebug()<< "Has vendor ID" << serialPortInfo.hasVendorIdentifier();
         if (serialPortInfo.hasVendorIdentifier()){
-            qDebug()<< "Vendor id"<< serialPortInfo.vendorIdentifier();
+            //qDebug()<< "Vendor id"<< serialPortInfo.vendorIdentifier();
         }
 
-        qDebug()<< "Has product ID" << serialPortInfo.hasProductIdentifier();
+        //qDebug()<< "Has product ID" << serialPortInfo.hasProductIdentifier();
         if (serialPortInfo.hasProductIdentifier())
         {
-            qDebug()<< "Product ID" << serialPortInfo.productIdentifier();
+            //qDebug()<< "Product ID" << serialPortInfo.productIdentifier();
         }
     }
     //+-
@@ -61,6 +65,54 @@ void MainWindow::usbport(void)
     }
 }
 
+
+void MainWindow::initChart(void)
+{
+    chart = new QChart();
+    //chart->legend()->hide();
+    chart->setTitle("Material resistance v1.0");
+    //
+    QValueAxis *axisX = new QValueAxis;
+    axisX->setTitleText("Voltaje (mV)");
+    axisX->setRange(-1500,1500);
+    axisX->setTickCount(7);
+
+    //QValueAxis *axisY = new QValueAxis;
+    axisY = new QValueAxis;
+    axisY->setTitleText("Distancia (m)");
+    axisY->setRange(0,100);
+    axisY->setTickCount(11);
+    //caracteristicas de los ejes
+    QPen penY1(Qt::darkBlue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);//afecta la vis.del eje Y1
+    axisY->setLinePen(penY1);//sobreescribe el color
+
+
+    axisY->setGridLineColor(QColor(Qt::gray));//afecta la grilla
+    axisY->setGridLineVisible(true);
+
+    //![2] corriente
+//    QValueAxis *axisXc = new QValueAxis;
+//    axisXc->setTitleText("Corriente (mA)");
+//    axisXc->setRange(0,500);
+//    axisXc->setTickCount(5);
+//    chart->addAxis(axisXc, Qt::AlignTop);
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    //QSplineSeries *series = new QSplineSeries;
+    //QLineSeries *series = new QLineSeries;
+    //series = new QSplineSeries;
+    series = new QLineSeries;
+
+    //*series << QPointF(500, 2.5) << QPointF(-1000, 5) << QPointF(1500, 7.5) << QPointF(-1250, 10);
+    *series << QPointF(0, 0);
+
+    chart->addSeries(series);
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+    //
+    ui->graphicsView->setChart(chart);
+}
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -68,43 +120,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     usbport();
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        QChart *chart = new QChart();
-        //chart->legend()->hide();
-        chart->setTitle("Material resistance v1.0");
-        //
-        QValueAxis *axisX = new QValueAxis;
-        axisX->setTitleText("Voltaje (mV)");
-        axisX->setRange(-1500,1500);
-        axisX->setTickCount(7);
-
-        QValueAxis *axisY = new QValueAxis;
-        axisY->setTitleText("Distancia (m)");
-        axisY->setRange(0,100);
-        //axisY->setLinePenColor(series->pen().color());
-
-        //![2] corriente
-    //    QValueAxis *axisXc = new QValueAxis;
-    //    axisXc->setTitleText("Corriente (mA)");
-    //    axisXc->setRange(0,500);
-    //    axisXc->setTickCount(5);
-    //    chart->addAxis(axisXc, Qt::AlignTop);
-        chart->addAxis(axisX, Qt::AlignBottom);
-        chart->addAxis(axisY, Qt::AlignLeft);
-
-        //QSplineSeries *series = new QSplineSeries;
-        QLineSeries *series = new QLineSeries;
-        *series << QPointF(500, 2.5) << QPointF(-1000, 5) << QPointF(1500, 7.5) << QPointF(-1250, 10);
-        chart->addSeries(series);
-        series->attachAxis(axisX);
-        series->attachAxis(axisY);
-        //
-        ui->graphicsView->setChart(chart);
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
+    initChart();
 }
 
 MainWindow::~MainWindow()
@@ -141,7 +157,7 @@ float current = 0;
 void MainWindow::readSerial()
 {
     static int counter = 0;
-    qDebug()<< "counter:" << counter++;
+//    qDebug()<< "counter:" << counter++;
 
     QByteArray serialBuff = usbCDC->readAll();
     QString str_payload = QString::fromStdString(serialBuff.toStdString());
@@ -223,46 +239,21 @@ void MainWindow::readSerial()
         meters = atof(&v[0][0]);
         volts = atof(&v[1][0]);
         current = atof(&v[2][0]);
-        qDebug() << meters;
-        qDebug() << volts;
-        qDebug() << current;
+        qDebug() << "meters: " <<meters;
+        qDebug() << "volts: " << volts;
+        qDebug() << "current: " << current;
+        qDebug() << Qt::endl;
     //                    qDebug() << &v[0][0];
     //                    qDebug() << &v[1][0];
     //                    qDebug() << &v[2][0];
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        QChart *chart = new QChart();
-        //chart->legend()->hide();
-        chart->setTitle("Material resistance v1.0");
-        //
-        QValueAxis *axisX = new QValueAxis;
-        axisX->setTitleText("Voltaje (mV)");
-        axisX->setRange(-1500,1500);
-        axisX->setTickCount(7);
-
-        QValueAxis *axisY = new QValueAxis;
-        axisY->setTitleText("Distancia (m)");
-        axisY->setRange(0,100);
-        //axisY->setLinePenColor(series->pen().color());
-
-        //![2] corriente
-    //    QValueAxis *axisXc = new QValueAxis;
-    //    axisXc->setTitleText("Corriente (mA)");
-    //    axisXc->setRange(0,500);
-    //    axisXc->setTickCount(5);
-    //    chart->addAxis(axisXc, Qt::AlignTop);
-        chart->addAxis(axisX, Qt::AlignBottom);
-        chart->addAxis(axisY, Qt::AlignLeft);
-
-        //QSplineSeries *series = new QSplineSeries;
-        QLineSeries *series = new QLineSeries;
-        *series << QPointF(500, 2.5) << QPointF(-1000, 5) << QPointF(1500, 7.5) << QPointF(-1250, 10);
-        chart->addSeries(series);
-        series->attachAxis(axisX);
-        series->attachAxis(axisY);
-        //
-        ui->graphicsView->setChart(chart);
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //*series << QPointF(500, 2.5) << QPointF(-1000, 5) << QPointF(1500, 7.5) << QPointF(-1250, 10);
+        //*series << QPointF(500, 2.5) << QPointF(-1000, 5) << QPointF(1500, 7.5) << QPointF(-1250, 10);
+        *series << QPointF(volts, meters);
     }
 }
 
+
+void MainWindow::on_pushButton_clicked()
+{
+    axisY->setRange(0,50);
+}
